@@ -161,9 +161,61 @@ def realizar_pedido(nome_cliente, itens):
     todos_pedidos.append(pedido)   
     print(f"Pedido {codigo} criado para {nome_cliente} e está AGUARDANDO APROVACAO.")
 
+def adicionar_item_pedido(self):
+    codigo_pedido = int(input("Digite o código do pedido: "))
+    item_id = int(input(f"Digite o item que deseja adicionar ao pedido {codigo_pedido}"))
+    
+    pedido = None
+    for p in self.pedidos:
+        if p["codigo"] == codigo_pedido:
+            pedido = p
+
+    item = None
+    for it in self.itens:
+        if it["id"] == item_id:
+            item = it
+
+    match (pedido, item):
+        case (None, _):
+            print("Pedido não encontrado!")
+            return None
+
+        case (_, None):
+            print("Item não encontrado!")
+            return None
+
+        case (_, _) if item["estoque"] <= 0:
+            print("Sem estoque desse item!")
+            return None
+
+        case _:
+            novo_item = {
+                "id": item["id"],
+                "nome": item["nome"],
+                "preco": item["preco"]
+            }
+
+            pedido["itens"].append(novo_item)
+
+            pedido["valor_total"] = pedido["valor_total"] + item["preco"]
+
+            item["estoque"] = item["estoque"] - 1
+
+            for i in range(len(self.pedidos)):
+                if self.pedidos[i]["codigo"] == codigo_pedido:
+                    self.pedidos[i] = pedido
+
+            for i in range(len(self.itens)):
+                if self.itens[i]["id"] == item_id:
+                    self.itens[i] = item
+
+            print("Item adicionado ao pedido!")
+            return pedido
+
 def processar_pedido():
     if len(fila_pedidos_pendentes) == 0:
         print("Nenhum pedido pendente para processar.")
+        
     else:
         pedido = fila_pedidos_pendentes.pop(0)
         print(f"\n Processando pedido {pedido["codigo"]} de valor R${pedido["valor_total"]:.2f} do cliente {pedido["nome_cliente"]}")
@@ -175,9 +227,11 @@ def processar_pedido():
             pedido["status"] = "ACEITO"
             fila_pedidos_aceitos.append(pedido)
             print(f"Pedido {pedido["codigo"]} foi ACEITO e está na fila de preparo.")
-        else:
+        elif escolha == "2":
             pedido["status"] = "REJEITADO"
             print(f"Pedido {pedido["codigo"]} foi REJEITADO.")
+        else:
+            print("Opção inválida.")
 
 def preparar_pedido():
     if len(fila_pedidos_aceitos) == 0:
@@ -324,14 +378,15 @@ def menu_pedidos():
     while sair != 0:
         print("\n ------ SISTEMA DE PEDIDOS ------")
         print("1 - Criar Pedido")
-        print("2 - Processar Pedido Pendente")
-        print("3 - Preparar Pedido")
-        print("4 - Enviar para a Mesa")
-        print("5 - Finalizar Entrega")
-        print("6 - Exibir todos os pedidos")
-        print("7 - Filtrar pedidos por status")
-        print("8 - Voltar ao menu anterior")
-        print("9 - Sair")
+        print("2 - Adicionar item ao pedido")
+        print("3 - Processar Pedido Pendente")
+        print("4 - Preparar Pedido")
+        print("5 - Enviar para a Mesa")
+        print("6 - Finalizar Entrega")
+        print("7 - Exibir todos os pedidos")
+        print("8 - Filtrar pedidos por status")
+        print("9 - Voltar ao menu anterior")
+        print("10 - Sair")
         opcao = input("\n Escolha uma opção: ")
 
         match opcao:
@@ -351,22 +406,23 @@ def menu_pedidos():
                         break
                 if not item_encontrado:
                     print("Item não encontrado, tente novamente.")
-
             case "2":
-                processar_pedido()
+                adicionar_item_pedido()
             case "3":
-                preparar_pedido()
+                processar_pedido()
             case "4":
-                entregar_pedido()
+                preparar_pedido()
             case "5":
-                pedido_entregue()
+                entregar_pedido()
             case "6":
-                exibir_pedidos()
+                pedido_entregue()
             case "7":
-                filtrar_pedidos()
+                exibir_pedidos()
             case "8":
-                menu_principal()
+                filtrar_pedidos()
             case "9":
+                menu_principal()
+            case "10":
                 sair = 0
                 print("Saindo do sistema...")
             case _:
