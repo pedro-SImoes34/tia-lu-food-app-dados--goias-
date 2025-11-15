@@ -1,10 +1,10 @@
 import json
 menu_de_itens = []
 id = 1
-with open("itens.json", "r", encoding="utf-8") as arq:
+with open("restaurante.json", "r", encoding="utf-8") as arq:
     json.load(arq)
 
-def cadastrar_item():
+def registrar_item():
     global id
     print("\n--- Cadastrar Novo Item ---")
     nome = input("Digite o nome do produto: ")
@@ -21,7 +21,7 @@ def cadastrar_item():
                  }
     menu_de_itens.append(novo_item)
 
-    with open("itens.json", "w", encoding="utf-8") as arq:
+    with open("restaurante.json", "w", encoding="utf-8") as arq:
         json.dump(menu_de_itens, arq, ensure_ascii=False)
 
     id += 1
@@ -45,7 +45,7 @@ def atualizar_item():
             if novo_estoque:
                 item["estoque"] = int(novo_estoque)
             print("\n✅ Item atualizado com sucesso!\n")
-            with open("itens.json", "w", encoding="utf-8") as arq:
+            with open("restaurante.json", "w", encoding="utf-8") as arq:
                 json.dump(menu_de_itens, arq, ensure_ascii=False)
             return
     print("\n❌ Item não encontrado!\n")
@@ -73,8 +73,8 @@ def detalhes_item():
     print("\n❌ Item não encontrado!\n")
 
 def menu_principal():
-    menu = 0
-    while menu == 0:
+    menu = 1
+    while menu != 0:
         print("\n === MENU PRINCIPAL ===")
         print("1 - Cadastrar Item")
         print("2 - Atualizar Item")
@@ -86,7 +86,7 @@ def menu_principal():
         
         match opcao:
             case "1":
-                cadastrar_item()
+                registrar_item()
             case "2":
                 atualizar_item()
             case "3":
@@ -95,7 +95,7 @@ def menu_principal():
                 detalhes_item()
             case "0":
                 print("\n👋 Saindo do sistema. Até mais!")
-                break
+                menu = 0
             case _:
                 print("\n⚠ Opção inválida, tente novamente.\n")
 
@@ -108,7 +108,7 @@ fila_pedidos_entrega = []
 todos_pedidos = []
 valor_total = 0
 
-def criar_pedido(nome_cliente, itens):
+def realizar_pedido(nome_cliente, itens):
     codigo = len(todos_pedidos) + 1 
     valor_total = 0
     
@@ -195,13 +195,13 @@ def preparar_pedido():
             print(f"Pedido {pedido["codigo"]} está sendo preparado...")
             pedido["status"] = "FEITO"
             fila_pedidos_prontos.append(pedido)
-            print(f"Pedido {pedido["codigo"]} está FEITO e agora ESPERANDO ENTREGADOR.")
+            print(f"Pedido {pedido["codigo"]} está FEITO e agora ESPERANDO GARÇOM.")
         
         elif escolha == "2":
             pedido["status"] = "CANCELADO"
             print(f"Pedido {pedido["codigo"]} foi cancelado.")
 
-def enviar_para_entrega():
+def entregar_pedido():
     if len(fila_pedidos_prontos) == 0:
         print("Nenhum pedido pronto para enviar.")
     else:
@@ -210,7 +210,7 @@ def enviar_para_entrega():
         fila_pedidos_entrega.append(pedido)
         print(f"Pedido {pedido["codigo"]} de {pedido["nome_cliente"]} SAIU PARA ENTREGA.")
 
-def finalizar_entrega():
+def pedido_entregue():
     if len(fila_pedidos_entrega) == 0:
         print("Nenhum pedido em rota de entrega.")
     else:
@@ -230,7 +230,7 @@ def filtrar_pedidos():
     print("2 - ACEITO")
     print("3 - FAZENDO")
     print("4 - FEITO")
-    print("5 - ESPERANDO ENTREGADOR")
+    print("5 - ESPERANDO GARÇOM")
     print("6 - SAIU PARA ENTREGA")
     print("7 - ENTREGUE")
     print("8 - CANCELADO")
@@ -277,7 +277,7 @@ def filtrar_pedidos():
         case "5":
             busca_sucedida = False
             for pedido in todos_pedidos:
-                if pedido["status"] == "ESPERANDO ENTREGADOR":
+                if pedido["status"] == "ESPERANDO GARÇOM":
                     print(f"Código: {pedido["codigo"]} | Cliente: {pedido["nome_cliente"]} | Itens: {pedido["itens"]} | Status: {pedido["status"]} | Valor do Pedido: {pedido["valor_total"]:.2f}")
                     busca_sucedida = True
             if not busca_sucedida:
@@ -320,13 +320,13 @@ def filtrar_pedidos():
                 print("Não existe pedidos com esse status no momento.")
             
 def menu_pedidos():
-    sair = 0
-    while sair == 0:
+    sair = 1
+    while sair != 0:
         print("\n ------ SISTEMA DE PEDIDOS ------")
         print("1 - Criar Pedido")
         print("2 - Processar Pedido Pendente")
         print("3 - Preparar Pedido")
-        print("4 - Enviar para Entrega")
+        print("4 - Enviar para a Mesa")
         print("5 - Finalizar Entrega")
         print("6 - Exibir todos os pedidos")
         print("7 - Filtrar pedidos por status")
@@ -344,7 +344,7 @@ def menu_pedidos():
                     if itens == novo_item["id"]:
                         item_encontrado = True
                         if novo_item["estoque"] > 0:
-                            criar_pedido(nome, itens)
+                            realizar_pedido(nome, itens)
                             novo_item["estoque"] -= 1
                         else:
                             print("No momento estamos em falta deste item. Sentimos muito por isso ☹️")
@@ -357,9 +357,9 @@ def menu_pedidos():
             case "3":
                 preparar_pedido()
             case "4":
-                enviar_para_entrega()
+                entregar_pedido()
             case "5":
-                finalizar_entrega()
+                pedido_entregue()
             case "6":
                 exibir_pedidos()
             case "7":
@@ -367,7 +367,7 @@ def menu_pedidos():
             case "8":
                 menu_principal()
             case "9":
-                sair = 1
+                sair = 0
                 print("Saindo do sistema...")
             case _:
                 print("Opção inválida, tente de novo.")
