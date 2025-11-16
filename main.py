@@ -2,16 +2,30 @@ import json
 import os
 
 menu_de_itens = []
+todos_pedidos = []
+id = 1
 
-if os.path.exists("restaurante.json"):
+if os.path.exists("restaurante.json") and os.path.getsize("restaurante.json") > 0:
     with open("restaurante.json", "r", encoding="utf-8") as arq:
-        menu_de_itens = json.load(arq)   
+        dados_json = json.load(arq)
+
+    menu_de_itens = dados_json.get("itens", []) 
+    todos_pedidos = dados_json.get("pedidos", [])  
+
+    if menu_de_itens:  
+        id = max(item["id"] for item in menu_de_itens) + 1 
 
 else:
-    menu_de_itens = [] 
+    menu_de_itens = []
+    dados_json = {
+    "itens": [],
+    "pedidos": []
+    }
+    with open("restaurante.json", "w", encoding="utf-8") as arq:
+        json.dump(dados_json, arq, ensure_ascii=False, indent=4)
 
-id = 1
-  
+    menu_de_itens = dados_json["itens"] 
+    todos_pedidos = dados_json["pedidos"]
 
 def registrar_item():
     global id
@@ -30,8 +44,9 @@ def registrar_item():
                  }
     menu_de_itens.append(novo_item)
 
+    dados_json["itens"] = menu_de_itens
     with open("restaurante.json", "w", encoding="utf-8") as arq:
-        json.dump(menu_de_itens, arq, ensure_ascii=False)
+        json.dump(dados_json, arq, ensure_ascii=False, indent=4)
 
     id += 1
     print("Item cadastrado com sucesso!")
@@ -54,18 +69,41 @@ def atualizar_item():
             if novo_estoque:
                 item["estoque"] = int(novo_estoque)
             print("\nItem atualizado.\n")
+
+            dados_json["itens"] = menu_de_itens
             with open("restaurante.json", "w", encoding="utf-8") as arq:
-                json.dump(menu_de_itens, arq, ensure_ascii=False)
+                json.dump(dados_json, arq, ensure_ascii=False)
             return
     print("\nItem não encontrado!\n")
 
+def counting_sort_dicts(arr, key_name):
+    if not arr:
+        return []
+    max_val = 0
+    for d in arr:
+        if d[key_name] > max_val:
+            max_val = d[key_name]
+    count = [0] * (max_val + 1)
+    for d in arr:
+        count[d[key_name]] += 1
+    for i in range(1, len(count)):
+        count[i] += count[i-1]
+    output = [None] * len(arr) 
+    for d in reversed(arr):
+        element_val = d[key_name] 
+        output_index = count[element_val] - 1
+        output[output_index] = d 
+        count[element_val] -= 1
+    return output
+
 def consultar_itens():
     if not menu_de_itens:
-        print("\nNenhum item cadastrado.\n")
+        print("\n⚠ Nenhum item cadastrado.\n")
         return
-    print("\nLista de Itens:")
-    for item in menu_de_itens:
-        print(f"[{item['id']}] {item['nome']} - R${item['preco']:.2f} (Estoque: {item['estoque']})")
+    print("\n📋 Lista de Itens (Ordenada por ID):")
+    lista_ordenada = counting_sort_dicts(menu_de_itens, "id")
+    for item in lista_ordenada:
+        print(f"[{item["id"]}] {item["nome"]} - R${item["preco"]:.2f} (Estoque: {item["estoque"]})")
     print()
         
 def detalhes_item():
@@ -114,7 +152,6 @@ fila_pedidos_pendentes = []
 fila_pedidos_aceitos = []    
 fila_pedidos_prontos = []     
 fila_pedidos_entrega = []     
-todos_pedidos = []
 valor_total = 0
 
 def realizar_pedido(nome_cliente, itens):
@@ -166,6 +203,10 @@ def realizar_pedido(nome_cliente, itens):
         
     fila_pedidos_pendentes.append(pedido) 
     todos_pedidos.append(pedido)   
+
+    dados_json["pedidos"] = todos_pedidos
+    with open("restaurante.json", "w", encoding="utf-8") as arq:
+        json.dump(dados_json, arq, ensure_ascii=False, indent=4)
     print(f"Pedido {codigo} criado.")
 
 def adicionar_item_pedido():
@@ -206,8 +247,20 @@ def adicionar_item_pedido():
             pedido["valor_total"] += item["preco"]
             item["estoque"] -= 1
 
-            print(f"Item adicionado ao pedido!\n O novo valor do pedido ficou no total de R${pedido["valor_total"]} ")
+            print(f"Item adicionado ao pedido!\n O novo valor do pedido ficou no total de R${pedido["valor_total"]:.2f} ")
+
+            dados_json = {
+                "itens": menu_de_itens,
+                "pedidos": todos_pedidos
+            }
+
+            with open("restaurante.json", "w", encoding="utf-8") as arq:
+                json.dump(dados_json, arq, ensure_ascii=False, indent=4)
+            
             return pedido
+        
+    with open("restaurante.json", "w", encoding="utf-8") as arq:
+        json.dump(dados_json, arq, ensure_ascii=False, indent=4)
 
 def processar_pedido():
     if len(fila_pedidos_pendentes) == 0:
@@ -229,6 +282,14 @@ def processar_pedido():
             print(f"Pedido {pedido['codigo']} foi REJEITADO.")
         else:
             print("Opção inválida.")
+
+    dados_json = {
+                "itens": menu_de_itens,
+                "pedidos": todos_pedidos
+            }
+
+    with open("restaurante.json", "w", encoding="utf-8") as arq:
+        json.dump(dados_json, arq, ensure_ascii=False, indent=4)
 
 def preparar_pedido():
     if len(fila_pedidos_aceitos) == 0:
@@ -259,7 +320,7 @@ def pedido_entregue():
 def exibir_pedidos():
     print("\n--- LISTA DE PEDIDOS ---")
     for pedido in todos_pedidos:
-        print(f"Código: {pedido['codigo']} | Cliente: {pedido['nome_cliente']} | Status: {pedido['status']}")
+        print(f"Código: {pedido['codigo']} | Cliente: {pedido['nome_cliente']} | Valor: {pedido["valor_total"]:.2f} |Status: {pedido['status']}")
     print("-------------------------\n")
 
 def filtrar_pedidos():

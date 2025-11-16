@@ -1,1 +1,73 @@
-[{"id": 1, "nome": "pao", "descricao": "a", "preco": 12.0, "estoque": 12}]
+{
+    "itens": [
+        {
+            "id": 1,
+            "nome": "Pão",
+            "descricao": "Feito com trigo",
+            "preco": 0.5,
+            "estoque": 6
+        },
+        {
+            "id": 2,
+            "nome": "Tomate",
+            "descricao": "Fruta",
+            "preco": 5.69,
+            "estoque": 19
+        },
+        {
+            "id": 3,
+            "nome": "Suco de Laranja",
+            "descricao": "Suco in natur",
+            "preco": 6.0,
+            "estoque": 10
+        }
+    ],
+    "pedidos": [
+        {
+            "codigo": 1,
+            "nome_cliente": "Pedro",
+            "itens": [
+                {
+                    "id": 2,
+                    "nome": "Tomate",
+                    "preco": 5.69
+                },
+                {
+                    "id": 3,
+                    "nome": "Suco de Laranja",
+                    "preco": 6.0
+                },
+                {
+                    "id": 1,
+                    "nome": "Pão",
+                    "preco": 0.5
+                },
+                {
+                    "id": 1,
+                    "nome": "Pão",
+                    "preco": 0.5
+                }
+            ],
+            "status": "AGUARDANDO APROVACAO",
+            "valor_total": 13.190000000000001
+        },
+        {
+            "codigo": 2,
+            "nome_cliente": "João",
+            "itens": [
+                {
+                    "id": 1,
+                    "nome": "Pão",
+                    "preco": 0.5
+                },
+                {
+                    "id": 1,
+                    "nome": "Pão",
+                    "preco": 0.5
+                }
+            ],
+            "status": "AGUARDANDO APROVACAO",
+            "valor_total": 7.0
+        }
+    ]
+}
