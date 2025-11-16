@@ -318,9 +318,10 @@ def pedido_entregue():
         print(f"Pedido {pedido['codigo']} foi ENTREGUE.")
 
 def exibir_pedidos():
-    print("\n--- LISTA DE PEDIDOS ---")
-    for pedido in todos_pedidos:
-        print(f"Código: {pedido['codigo']} | Cliente: {pedido['nome_cliente']} | Valor: {pedido["valor_total"]:.2f} |Status: {pedido['status']}")
+    print("\n--- LISTA DE PEDIDOS (Ordenada) ---")
+    lista_pedidos_ordenados = counting_sort_dicts(todos_pedidos, "codigo")
+    for pedido in lista_pedidos_ordenados:
+        print(f"Código: {pedido['codigo']} | Cliente: {pedido['nome_cliente']} | Valor: {pedido['valor_total']:.2f} |Status: {pedido['status']}")
     print("-------------------------\n")
 
 def filtrar_pedidos():
