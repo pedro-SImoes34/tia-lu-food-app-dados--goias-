@@ -1,31 +1,42 @@
 import json
 import os
+import arvore_avl
 
 menu_de_itens = []
 todos_pedidos = []
 id = 1
 
+raiz_itens = None
+raiz_pedidos = None
+
 if os.path.exists("restaurante.json") and os.path.getsize("restaurante.json") > 0:
     with open("restaurante.json", "r", encoding="utf-8") as arq:
         dados_json = json.load(arq)
 
-    menu_de_itens = dados_json.get("itens", []) 
-    todos_pedidos = dados_json.get("pedidos", [])  
+    menu_de_itens = dados_json.get("itens", [])
+    todos_pedidos = dados_json.get("pedidos", [])
 
-    if menu_de_itens:  
-        id = max(item["id"] for item in menu_de_itens) + 1 
+    if menu_de_itens:
+        id = max(item["id"] for item in menu_de_itens) + 1
 
 else:
     menu_de_itens = []
     dados_json = {
-    "itens": [],
-    "pedidos": []
+        "itens": [],
+        "pedidos": []
     }
     with open("restaurante.json", "w", encoding="utf-8") as arq:
         json.dump(dados_json, arq, ensure_ascii=False, indent=4)
 
-    menu_de_itens = dados_json["itens"] 
+    menu_de_itens = dados_json["itens"]
     todos_pedidos = dados_json["pedidos"]
+
+for item in menu_de_itens:
+    raiz_itens = arvore_avl.inserirNode(raiz_itens, item["id"], item)
+for pedido in todos_pedidos:
+    raiz_pedidos = arvore_avl.inserirNode(
+        raiz_pedidos, pedido["codigo"], pedido)
+
 
 def registrar_item():
     global id
@@ -37,11 +48,11 @@ def registrar_item():
 
     novo_item = {
         "id": id,
-        "nome": nome, 
+        "nome": nome,
         "descricao": descricao,
-        "preco": preco, 
+        "preco": preco,
         "estoque": estoque
-                 }
+    }
     menu_de_itens.append(novo_item)
 
     dados_json["itens"] = menu_de_itens
@@ -51,6 +62,7 @@ def registrar_item():
     id += 1
     print("Item cadastrado com sucesso!")
 
+
 def atualizar_item():
     codigo = int(input("\n Digite o código do item a ser atualizado:  "))
     for item in menu_de_itens:
@@ -58,11 +70,11 @@ def atualizar_item():
             print(f"\nEditando item {item['nome']} (código {item['id']})")
             novo_nome = input(f"Novo nome ({item['nome']}): ")
             if novo_nome:
-                 item["nome"] = novo_nome
-            nova_desc= input(f"Nova descrição ({item['descricao']}): ")
+                item["nome"] = novo_nome
+            nova_desc = input(f"Nova descrição ({item['descricao']}): ")
             if nova_desc:
-                 item["descricao"] = nova_desc
-            novo_preco= input(f"Novo preço ({item['preco']}): ")
+                item["descricao"] = nova_desc
+            novo_preco = input(f"Novo preço ({item['preco']}): ")
             if novo_preco:
                 item["preco"] = float(novo_preco)
             novo_estoque = input(f"Novo estoque ({item['estoque']}): ")
@@ -76,6 +88,7 @@ def atualizar_item():
             return
     print("\nItem não encontrado!\n")
 
+
 def counting_sort_dicts(arr, key_name):
     if not arr:
         return []
@@ -88,13 +101,14 @@ def counting_sort_dicts(arr, key_name):
         count[d[key_name]] += 1
     for i in range(1, len(count)):
         count[i] += count[i-1]
-    output = [None] * len(arr) 
+    output = [None] * len(arr)
     for d in reversed(arr):
-        element_val = d[key_name] 
+        element_val = d[key_name]
         output_index = count[element_val] - 1
-        output[output_index] = d 
+        output[output_index] = d
         count[element_val] -= 1
     return output
+
 
 def consultar_itens():
     if not menu_de_itens:
@@ -103,9 +117,11 @@ def consultar_itens():
     print("\n📋 Lista de Itens (Ordenada por ID):")
     lista_ordenada = counting_sort_dicts(menu_de_itens, "id")
     for item in lista_ordenada:
-        print(f"[{item["id"]}] {item["nome"]} - R${item["preco"]:.2f} (Estoque: {item["estoque"]})")
+        print(
+            f"[{item["id"]}] {item["nome"]} - R${item["preco"]:.2f} (Estoque: {item["estoque"]})")
     print()
-        
+
+
 def detalhes_item():
     codigo = int(input("\n Digite o código do item:  "))
     for item in menu_de_itens:
@@ -119,6 +135,7 @@ def detalhes_item():
             return
     print("\nItem não encontrado!\n")
 
+
 def menu_principal():
     menu = 1
     while menu != 0:
@@ -130,7 +147,7 @@ def menu_principal():
         print("0 - Sair")
 
         opcao = input("\n Escolha uma opção: ")
-        
+
         match opcao:
             case "1":
                 registrar_item()
@@ -146,42 +163,46 @@ def menu_principal():
             case _:
                 print("\nOpção inválida.\n")
 
+
 menu_principal()
-           
-fila_pedidos_pendentes = []  
-fila_pedidos_aceitos = []    
-fila_pedidos_prontos = []     
-fila_pedidos_entrega = []     
+
+fila_pedidos_pendentes = []
+fila_pedidos_aceitos = []
+fila_pedidos_prontos = []
+fila_pedidos_entrega = []
 valor_total = 0
 
+
 def realizar_pedido(nome_cliente, itens):
-    codigo = len(todos_pedidos) + 1 
+    codigo = len(todos_pedidos) + 1
     valor_total = 0
-    
-    for item in menu_de_itens:
-        if item["id"] == itens: 
-            valor_total += item["preco"]
+
+    buscar_item = arvore_avl.buscarNode(raiz_itens, itens)
+    if buscar_item is None:
+        print("Item não encontrado!")
+        return
+    valor_total = buscar_item["preco"]
 
     valido = 0
-    while valido == 0: 
+    while valido == 0:
         desconto = input("Deseja adicionar algum cupom de desconto? (S/N): ")
         cupom = "GOIAS10"
-        
+
         if desconto == "S":
-            cupom = input("Digite o cupom: ") 
+            cupom = input("Digite o cupom: ")
             if cupom == "GOIAS10":
-                valor_desconto = valor_total * 0.1 
+                valor_desconto = valor_total * 0.1
                 valor_total -= valor_desconto
                 print(f"O valor caiu para R${valor_total:.2f}")
-                valido = 1     
+                valido = 1
             else:
                 print("\nCupom inválido!")
                 print("1 - Tentar novamente.")
                 print("2 - Continuar sem cupom.")
                 resposta = int(input("Escolha uma opção: "))
-                
+
                 if resposta == 1:
-                    valido = 0              
+                    valido = 0
                 elif resposta == 2:
                     print(f"\nValor: R${valor_total:.2f}")
                     valido = 1
@@ -192,27 +213,31 @@ def realizar_pedido(nome_cliente, itens):
             valido = 1
         else:
             valido = 0
-        
+
     pedido = {
         "codigo": codigo,
         "nome_cliente": nome_cliente,
         "itens": [],
-        "status": "AGUARDANDO APROVACAO", 
+        "status": "AGUARDANDO APROVACAO",
         "valor_total": valor_total
     }
-        
-    fila_pedidos_pendentes.append(pedido) 
-    todos_pedidos.append(pedido)   
+
+    fila_pedidos_pendentes.append(pedido)
+    todos_pedidos.append(pedido)
+
+    raiz_pedidos = arvore_avl.inserir_pedido(raiz_pedidos, pedido)
 
     dados_json["pedidos"] = todos_pedidos
     with open("restaurante.json", "w", encoding="utf-8") as arq:
         json.dump(dados_json, arq, ensure_ascii=False, indent=4)
     print(f"Pedido {codigo} criado.")
 
+
 def adicionar_item_pedido():
     codigo_pedido = int(input("Digite o código do pedido: "))
-    item_id = int(input(f"Digite o item que deseja adicionar ao pedido {codigo_pedido}: "))
-        
+    item_id = int(
+        input(f"Digite o item que deseja adicionar ao pedido {codigo_pedido}: "))
+
     pedido = None
     for p in todos_pedidos:
         if int(p["codigo"]) == codigo_pedido:
@@ -247,7 +272,8 @@ def adicionar_item_pedido():
             pedido["valor_total"] += item["preco"]
             item["estoque"] -= 1
 
-            print(f"Item adicionado ao pedido!\n O novo valor do pedido ficou no total de R${pedido["valor_total"]:.2f} ")
+            print(
+                f"Item adicionado ao pedido!\n O novo valor do pedido ficou no total de R${pedido["valor_total"]:.2f} ")
 
             dados_json = {
                 "itens": menu_de_itens,
@@ -256,16 +282,17 @@ def adicionar_item_pedido():
 
             with open("restaurante.json", "w", encoding="utf-8") as arq:
                 json.dump(dados_json, arq, ensure_ascii=False, indent=4)
-            
+
             return pedido
-        
+
     with open("restaurante.json", "w", encoding="utf-8") as arq:
         json.dump(dados_json, arq, ensure_ascii=False, indent=4)
+
 
 def processar_pedido():
     if len(fila_pedidos_pendentes) == 0:
         print("Nenhum pedido pendente.")
-        
+
     else:
         pedido = fila_pedidos_pendentes.pop(0)
         print(f"\nProcessando pedido {pedido['codigo']}")
@@ -284,12 +311,13 @@ def processar_pedido():
             print("Opção inválida.")
 
     dados_json = {
-                "itens": menu_de_itens,
-                "pedidos": todos_pedidos
-            }
+        "itens": menu_de_itens,
+        "pedidos": todos_pedidos
+    }
 
     with open("restaurante.json", "w", encoding="utf-8") as arq:
         json.dump(dados_json, arq, ensure_ascii=False, indent=4)
+
 
 def preparar_pedido():
     if len(fila_pedidos_aceitos) == 0:
@@ -300,6 +328,7 @@ def preparar_pedido():
         fila_pedidos_prontos.append(pedido)
         print(f"Pedido {pedido['codigo']} está pronto.")
 
+
 def entregar_pedido():
     if len(fila_pedidos_prontos) == 0:
         print("Nenhum pedido pronto.")
@@ -309,6 +338,7 @@ def entregar_pedido():
         fila_pedidos_entrega.append(pedido)
         print(f"Pedido {pedido['codigo']} saiu para entrega.")
 
+
 def pedido_entregue():
     if len(fila_pedidos_entrega) == 0:
         print("Nenhum pedido em rota.")
@@ -317,12 +347,15 @@ def pedido_entregue():
         pedido["status"] = "ENTREGUE"
         print(f"Pedido {pedido['codigo']} foi ENTREGUE.")
 
+
 def exibir_pedidos():
     print("\n--- LISTA DE PEDIDOS (Ordenada) ---")
     lista_pedidos_ordenados = counting_sort_dicts(todos_pedidos, "codigo")
     for pedido in lista_pedidos_ordenados:
-        print(f"Código: {pedido['codigo']} | Cliente: {pedido['nome_cliente']} | Valor: {pedido['valor_total']:.2f} |Status: {pedido['status']}")
+        print(
+            f"Código: {pedido['codigo']} | Cliente: {pedido['nome_cliente']} | Valor: {pedido['valor_total']:.2f} |Status: {pedido['status']}")
     print("-------------------------\n")
+
 
 def filtrar_pedidos():
     print("1 - AGUARDANDO APROVACAO")
@@ -335,7 +368,7 @@ def filtrar_pedidos():
     print("8 - CANCELADO")
     print("9 - REJEITADO")
     filtro = input("Qual status deseja usar como filtro: ")
-    
+
     match filtro:
         case "1":
             status = "AGUARDANDO APROVACAO"
@@ -362,6 +395,7 @@ def filtrar_pedidos():
     for pedido in todos_pedidos:
         if pedido["status"] == status:
             print(pedido)
+
 
 def menu_pedidos():
     sair = 1
@@ -416,5 +450,6 @@ def menu_pedidos():
                 print("Saindo...")
             case _:
                 print("Inválido.")
+
 
 menu_pedidos()

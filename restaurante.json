@@ -68,6 +68,13 @@
             ],
             "status": "AGUARDANDO APROVACAO",
             "valor_total": 7.0
+        },
+        {
+            "codigo": 3,
+            "nome_cliente": "Larissa",
+            "itens": [],
+            "status": "AGUARDANDO APROVACAO",
+            "valor_total": 5.69
         }
     ]
 }
