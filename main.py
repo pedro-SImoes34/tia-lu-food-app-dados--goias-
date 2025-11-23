@@ -34,8 +34,7 @@ else:
 for item in menu_de_itens:
     raiz_itens = arvore_avl.inserirNode(raiz_itens, item["id"], item)
 for pedido in todos_pedidos:
-    raiz_pedidos = arvore_avl.inserirNode(
-        raiz_pedidos, pedido["codigo"], pedido)
+    raiz_pedidos = arvore_avl.inserir_pedido(raiz_pedidos, pedido)
 
 
 def registrar_item():
@@ -356,6 +355,20 @@ def exibir_pedidos():
             f"Código: {pedido['codigo']} | Cliente: {pedido['nome_cliente']} | Valor: {pedido['valor_total']:.2f} |Status: {pedido['status']}")
     print("-------------------------\n")
 
+def buscar_pedido_avl():
+    codigo = int(input("Digite o código do pedido: "))
+    resultado = arvore_avl.buscar_pedido(raiz_pedidos, codigo)
+
+    if resultado == None:
+        print("Pedido não encontrado!")
+        return
+
+    print("/n--- Detalhes do Pedido ---")
+    print(f"Código: {resultado['codigo']}")
+    print(f"Cliente: {resultado['nome_cliente']}")
+    print(f"Valor: {resultado['valor_total']:.2f}")
+    print(f"Status: {resultado['status']}")
+
 
 def filtrar_pedidos():
     print("1 - AGUARDANDO APROVACAO")
@@ -408,8 +421,9 @@ def menu_pedidos():
         print("5 - Enviar para a Mesa")
         print("6 - Finalizar Entrega")
         print("7 - Exibir todos os pedidos")
-        print("8 - Filtrar pedidos por status")
-        print("9 - Voltar ao menu anterior")
+        print("8 - Buscar pedidos (AVL)")
+        print("9 - Filtrar pedidos por status")
+        print("10 - Voltar ao menu anterior")
         print("0 - Sair")
         opcao = input("\n Escolha uma opção: ")
 
@@ -442,8 +456,10 @@ def menu_pedidos():
             case "7":
                 exibir_pedidos()
             case "8":
-                filtrar_pedidos()
+                buscar_pedido_avl()
             case "9":
+                filtrar_pedidos()
+            case "10":
                 menu_principal()
             case "0":
                 sair = 0
