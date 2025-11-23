@@ -103,7 +103,7 @@ class node_pedidos:
         self.pedido = pedido
         self.esquerda = None
         self.direita = None
-        self.altura = 1
+        self.altura = 0
 
 def inserir_pedido(node_atual, pedido):
     if node_atual is None:

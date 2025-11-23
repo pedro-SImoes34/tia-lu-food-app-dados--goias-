@@ -224,6 +224,7 @@ def realizar_pedido(nome_cliente, itens):
     fila_pedidos_pendentes.append(pedido)
     todos_pedidos.append(pedido)
 
+    global raiz_pedidos
     raiz_pedidos = arvore_avl.inserir_pedido(raiz_pedidos, pedido)
 
     dados_json["pedidos"] = todos_pedidos
@@ -363,7 +364,7 @@ def buscar_pedido_avl():
         print("Pedido não encontrado!")
         return
 
-    print("/n--- Detalhes do Pedido ---")
+    print("\n--- Detalhes do Pedido ---")
     print(f"Código: {resultado['codigo']}")
     print(f"Cliente: {resultado['nome_cliente']}")
     print(f"Valor: {resultado['valor_total']:.2f}")

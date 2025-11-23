@@ -75,6 +75,13 @@
             "itens": [],
             "status": "AGUARDANDO APROVACAO",
             "valor_total": 5.69
+        },
+        {
+            "codigo": 4,
+            "nome_cliente": "Paulo",
+            "itens": [],
+            "status": "AGUARDANDO APROVACAO",
+            "valor_total": 6.0
         }
     ]
 }
